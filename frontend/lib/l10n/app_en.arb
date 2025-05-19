@@ -1,0 +1,12 @@
+{
+  "@@locale": "en",
+  "appTitle": "PostPata Housing",
+  "welcome": "Welcome to PostPata",
+  "findHome": "Find your perfect home in Tanzania",
+  "login": "Login",
+  "register": "Register",
+  "phoneHint": "Enter phone number (07...)",
+  "@phoneHint": {
+    "description": "Hint text for phone number input"
+  }
+}

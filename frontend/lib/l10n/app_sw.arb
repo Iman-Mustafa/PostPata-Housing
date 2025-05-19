@@ -1,0 +1,12 @@
+{
+  "@@locale": "sw",
+  "appTitle": "PostPata Makazi",
+  "welcome": "Karibu PostPata",
+  "findHome": "Tafuta nyumba bora Tanzania",
+  "login": "Ingia",
+  "register": "Jisajili",
+  "phoneHint": "Weka namba ya simu (07...)",
+  "@phoneHint": {
+    "description": "Maandishi ya mwongozo kwa namba ya simu"
+  }
+}
