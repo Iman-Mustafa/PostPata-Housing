@@ -10,9 +10,9 @@ class HomeScreen extends StatelessWidget {
   final Widget? floatingActionButton;
 
   const HomeScreen({
-    Key? key,
+    super.key,
     this.floatingActionButton,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

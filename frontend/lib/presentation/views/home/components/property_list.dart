@@ -11,11 +11,11 @@ class PropertyList extends StatelessWidget {
   final VoidCallback? onRefresh;
 
   const PropertyList({
-    Key? key,
+    super.key,
     required this.properties,
     this.isFeatured = false,
     this.onRefresh,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -11,10 +11,10 @@ class OtpScreen extends StatefulWidget {
   final bool isPhoneVerification;
 
   const OtpScreen({
-    Key? key,
+    super.key,
     required this.emailOrPhone,
     required this.isPhoneVerification,
-  }) : super(key: key);
+  });
 
   @override
   _OtpScreenState createState() => _OtpScreenState();
@@ -140,8 +140,12 @@ class _OtpScreenState extends State<OtpScreen> {
 
   @override
   void dispose() {
-    for (var c in _controllers) c.dispose();
-    for (var f in _focusNodes) f.dispose();
+    for (var c in _controllers) {
+      c.dispose();
+    }
+    for (var f in _focusNodes) {
+      f.dispose();
+    }
     super.dispose();
   }
 }

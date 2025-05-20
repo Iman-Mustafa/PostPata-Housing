@@ -36,18 +36,16 @@ class LoginController with ChangeNotifier {
         isPhone: _isPhoneLogin,
       );
 
-      if (user != null) {
-        if (!user.isVerified) {
-          Navigator.pushNamed(
-            context,
-            RouteNames.otp,
-            arguments: {'isPhone': _isPhoneLogin, 'emailOrPhone': emailOrPhone},
-          );
-        } else {
-          Navigator.pushReplacementNamed(context, RouteNames.home);
-        }
+      if (!user.isVerified) {
+        Navigator.pushNamed(
+          context,
+          RouteNames.otp,
+          arguments: {'isPhone': _isPhoneLogin, 'emailOrPhone': emailOrPhone},
+        );
+      } else {
+        Navigator.pushReplacementNamed(context, RouteNames.home);
       }
-    } catch (e) {
+        } catch (e) {
       _errorMessage = e.toString();
     } finally {
       _isLoading = false;

@@ -4,7 +4,7 @@ import '../../../core/widgets/buttons/primary_button.dart';
 import '../../router/route_names.dart';
 
 class WelcomeScreen extends StatelessWidget {
-  const WelcomeScreen({Key? key}) : super(key: key);
+  const WelcomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +14,7 @@ class WelcomeScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset('assets/images/logo.png', height: 120),
+            Image.asset('assets/images/welcome.jpeg', height: 220),
             const SizedBox(height: 30),
             Text(
               AppStrings.welcomeTitle,

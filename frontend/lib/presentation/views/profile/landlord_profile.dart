@@ -6,7 +6,7 @@ import '../../controllers/auth/auth_controller.dart';
 import '../../router/route_names.dart';
 
 class LandlordProfile extends StatelessWidget {
-  const LandlordProfile({Key? key}) : super(key: key);
+  const LandlordProfile({super.key});
 
   @override
   Widget build(BuildContext context) {

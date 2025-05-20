@@ -8,7 +8,7 @@ import 'components/bottom_nav.dart';
 import 'components/property_list.dart';
 
 class AdminHome extends StatelessWidget {
-  const AdminHome({Key? key}) : super(key: key);
+  const AdminHome({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +18,8 @@ class AdminHome extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            onPressed: () => Navigator.pushNamed(context, RouteNames.addProperty),
+            onPressed:
+                () => Navigator.pushNamed(context, RouteNames.addProperty),
           ),
         ],
       ),

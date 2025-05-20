@@ -10,6 +10,8 @@ class LoginScreen extends StatelessWidget {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  LoginScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     final controller = Provider.of<LoginController>(context);
@@ -47,7 +49,7 @@ class LoginScreen extends StatelessWidget {
               Text(
                 controller.errorMessage!,
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
+              )
             ],
             Row(
               children: [

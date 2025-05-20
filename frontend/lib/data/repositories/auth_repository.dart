@@ -1,22 +1,30 @@
 // lib/data/repositories/auth_repository.dart
-import 'package:frontend/data/models/auth/user_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../models/auth/user_model.dart';
+
+
 
 class AuthRepository {
   final SupabaseClient _supabaseClient;
+  static const _profileTable = 'profiles';
 
   AuthRepository(this._supabaseClient);
 
   Future<UserModel?> getCurrentUser() async {
-    final session = _supabaseClient.auth.currentSession;
-    if (session == null) return null;
-
     try {
+      final session = _supabaseClient.auth.currentSession;
+      if (session == null) return null;
+
       final userData = await _supabaseClient
-          .from('profiles')
+          .from(_profileTable)
           .select()
           .eq('id', session.user.id)
-          .single();
+          .maybeSingle();
+
+      if (userData == null) {
+        throw Exception('User profile not found');
+      }
       
       return UserModel.fromJson(userData);
     } catch (e) {
@@ -30,23 +38,34 @@ class AuthRepository {
     required bool isPhone,
   }) async {
     try {
-      final response = isPhone
-          ? await _supabaseClient.auth.signInWithPassword(
-              phone: emailOrPhone,
-              password: password,
-            )
-          : await _supabaseClient.auth.signInWithPassword(
-              email: emailOrPhone,
-              password: password,
-            );
-
-      if (response.user == null) throw Exception('Login failed');
+      final AuthResponse response;
       
+      if (isPhone) {
+        response = await _supabaseClient.auth.signInWithPassword(
+          phone: _normalizePhoneNumber(emailOrPhone),
+          password: password,
+        );
+      } else {
+        response = await _supabaseClient.auth.signInWithPassword(
+          email: emailOrPhone.trim().toLowerCase(),
+          password: password,
+        );
+      }
+
+      if (response.user == null) {
+        throw Exception('Authentication failed - no user returned');
+      }
+
       final user = await getCurrentUser();
-      if (user == null) throw Exception('Failed to retrieve current user after login');
+      if (user == null) {
+        throw Exception('User profile not found after successful login');
+      }
+      
       return user;
+    } on AuthException catch (e) {
+      throw Exception(_parseAuthError(e.message));
     } catch (e) {
-      throw Exception('Login error: ${e.toString()}');
+      throw Exception('Login failed: ${e.toString()}');
     }
   }
 
@@ -58,32 +77,48 @@ class AuthRepository {
     required bool isPhone,
   }) async {
     try {
-      final authResponse = isPhone
-          ? await _supabaseClient.auth.signUp(
-              phone: emailOrPhone,
-              password: password,
-            )
-          : await _supabaseClient.auth.signUp(
-              email: emailOrPhone,
-              password: password,
-            );
+      final AuthResponse authResponse;
+      
+      if (isPhone) {
+        authResponse = await _supabaseClient.auth.signUp(
+          phone: _normalizePhoneNumber(emailOrPhone),
+          password: password,
+        );
+      } else {
+        authResponse = await _supabaseClient.auth.signUp(
+          email: emailOrPhone.trim().toLowerCase(),
+          password: password,
+          data: {
+            'full_name': fullName.trim(),
+            'role': role.name,
+          },
+        );
+      }
 
-      if (authResponse.user == null) throw Exception('Registration failed');
+      if (authResponse.user == null) {
+        throw Exception('Registration failed - no user created');
+      }
 
+      // Create user profile
       final profileData = await _supabaseClient
-          .from('profiles')
+          .from(_profileTable)
           .insert({
             'id': authResponse.user!.id,
-            'full_name': fullName,
-            'role': role.toString().split('.').last,
+            'full_name': fullName.trim(),
+            'role': role.name,
+            'email': isPhone ? null : emailOrPhone.trim().toLowerCase(),
+            'phone': isPhone ? _normalizePhoneNumber(emailOrPhone) : null,
             'is_verified': false,
+            'created_at': DateTime.now().toIso8601String(),
           })
           .select()
           .single();
 
       return UserModel.fromJson(profileData);
+    } on AuthException catch (e) {
+      throw Exception(_parseAuthError(e.message));
     } catch (e) {
-      throw Exception('Registration error: ${e.toString()}');
+      throw Exception('Registration failed: ${e.toString()}');
     }
   }
 
@@ -93,21 +128,29 @@ class AuthRepository {
     required bool isPhone,
   }) async {
     try {
-      final response = isPhone
-          ? await _supabaseClient.auth.verifyOTP(
-              phone: emailOrPhone,
-              token: otp,
-              type: OtpType.sms,
-            )
-          : await _supabaseClient.auth.verifyOTP(
-              email: emailOrPhone,
-              token: otp,
-              type: OtpType.email,
-            );
+      final AuthResponse response;
+      
+      if (isPhone) {
+        response = await _supabaseClient.auth.verifyOTP(
+          phone: _normalizePhoneNumber(emailOrPhone),
+          token: otp,
+          type: OtpType.sms,
+        );
+      } else {
+        response = await _supabaseClient.auth.verifyOTP(
+          email: emailOrPhone.trim().toLowerCase(),
+          token: otp,
+          type: OtpType.email,
+        );
+      }
 
-      if (response.session == null) throw Exception('OTP verification failed');
+      if (response.session == null) {
+        throw Exception('OTP verification failed - no session created');
+      }
+    } on AuthException catch (e) {
+      throw Exception(_parseAuthError(e.message));
     } catch (e) {
-      throw Exception('OTP verification error: ${e.toString()}');
+      throw Exception('OTP verification failed: ${e.toString()}');
     }
   }
 
@@ -115,7 +158,38 @@ class AuthRepository {
     try {
       await _supabaseClient.auth.signOut();
     } catch (e) {
-      throw Exception('Logout error: ${e.toString()}');
+      throw Exception('Logout failed: ${e.toString()}');
     }
+  }
+
+  String _normalizePhoneNumber(String phone) {
+    // Ensure consistent phone number format
+    final normalized = phone.trim().replaceAll(RegExp(r'[^\d+]'), '');
+    if (!normalized.startsWith('+')) {
+      return '+1$normalized'; // Default to US country code
+    }
+    return normalized;
+  }
+
+  String _parseAuthError(String message) {
+    if (message.contains('User already registered')) {
+      return 'This account already exists';
+    }
+    if (message.contains('Invalid login credentials')) {
+      return 'Invalid credentials provided';
+    }
+    if (message.contains('Phone number')) {
+      return 'Invalid phone number format';
+    }
+    if (message.contains('Email')) {
+      return 'Invalid email format';
+    }
+    if (message.contains('Password')) {
+      return 'Password does not meet requirements';
+    }
+    if (message.contains('OTP')) {
+      return 'Invalid verification code';
+    }
+    return message;
   }
 }

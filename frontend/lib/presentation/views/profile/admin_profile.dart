@@ -6,7 +6,7 @@ import '../../controllers/auth/auth_controller.dart';
 import '../../router/route_names.dart';
 
 class AdminProfile extends StatelessWidget {
-  const AdminProfile({Key? key}) : super(key: key);
+  const AdminProfile({super.key});
 
   @override
   Widget build(BuildContext context) {

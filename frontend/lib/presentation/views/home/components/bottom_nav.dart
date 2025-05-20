@@ -8,10 +8,10 @@ class CustomBottomNav extends StatelessWidget {
   final ValueChanged<int>? onTap;
 
   const CustomBottomNav({
-    Key? key,
+    super.key,
     this.currentIndex = 0,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

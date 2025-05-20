@@ -6,10 +6,10 @@ class LanguageDialog extends StatelessWidget {
   final ValueChanged<Locale> onLanguageSelected;
 
   const LanguageDialog({
-    Key? key,
+    super.key,
     required this.currentLocale,
     required this.onLanguageSelected,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

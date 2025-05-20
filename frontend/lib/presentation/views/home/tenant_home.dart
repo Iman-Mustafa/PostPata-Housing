@@ -7,7 +7,7 @@ import 'components/bottom_nav.dart';
 import 'components/property_list.dart';
 
 class TenantHome extends StatelessWidget {
-  const TenantHome({Key? key}) : super(key: key);
+  const TenantHome({super.key});
 
   @override
   Widget build(BuildContext context) {

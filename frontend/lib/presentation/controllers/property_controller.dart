@@ -5,15 +5,16 @@ import '../../data/repositories/property_repository.dart';
 
 class PropertyController with ChangeNotifier {
   PropertyRepository _repository;
-  List<PropertyModel> _allProperties = []; // Renamed from _properties
+  List<PropertyModel> _properties = []; // Main properties list
   List<PropertyModel> _featuredProperties = [];
   bool _isLoading = false;
-  String? _errorMessage; // More descriptive name
+  String? _errorMessage;
 
   PropertyController(this._repository);
 
   // Public getters
-  List<PropertyModel> get allProperties => _allProperties;
+  List<PropertyModel> get properties => _properties; // Added properties getter
+  List<PropertyModel> get allProperties => _properties; // Alias for backward compatibility
   List<PropertyModel> get featuredProperties => _featuredProperties;
   bool get isLoading => _isLoading;
   String? get error => _errorMessage;
@@ -35,20 +36,20 @@ class PropertyController with ChangeNotifier {
   // Load all properties
   Future<void> loadProperties() async {
     if (_isLoading) return;
-    
+
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      final properties = await _repository.getAllProperties();
+      final fetchedProperties = await _repository.getAllProperties();
       final featured = await _repository.getFeaturedProperties();
-      
-      _allProperties = properties;
+
+      _properties = fetchedProperties;
       _featuredProperties = featured;
     } catch (e) {
       _errorMessage = e.toString();
-      if (_allProperties.isEmpty) rethrow;
+      if (_properties.isEmpty) rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -63,13 +64,13 @@ class PropertyController with ChangeNotifier {
 
     try {
       final newProperty = await _repository.addProperty(property);
-      _allProperties.insert(0, newProperty);
-      
+      _properties.insert(0, newProperty);
+
       // Add to featured if applicable
       if (newProperty.isFeatured) {
         _featuredProperties.insert(0, newProperty);
       }
-      
+
       return newProperty;
     } catch (e) {
       _errorMessage = e.toString();
@@ -88,7 +89,7 @@ class PropertyController with ChangeNotifier {
 
     try {
       await _repository.deleteProperty(id);
-      _allProperties.removeWhere((p) => p.id == id);
+      _properties.removeWhere((p) => p.id == id);
       _featuredProperties.removeWhere((p) => p.id == id);
       return true;
     } catch (e) {
@@ -106,22 +107,22 @@ class PropertyController with ChangeNotifier {
     notifyListeners();
 
     try {
-      final property = _allProperties.firstWhere((p) => p.id == id);
-      final updatedProperty = property.copyWith(isFeatured: !property.isFeatured);
-      
+      final property = _properties.firstWhere((p) => p.id == id);
+      final updatedProperty = property.copyWith(
+        isFeatured: !property.isFeatured,
+      );
+
       await _repository.updateProperty(updatedProperty);
-      
+
       // Update local lists
-      _allProperties = _allProperties.map((p) => 
-        p.id == id ? updatedProperty : p
-      ).toList();
-      
+      _properties = _properties.map((p) => p.id == id ? updatedProperty : p).toList();
+
       if (updatedProperty.isFeatured) {
         _featuredProperties.insert(0, updatedProperty);
       } else {
         _featuredProperties.removeWhere((p) => p.id == id);
       }
-      
+
       return true;
     } catch (e) {
       _errorMessage = e.toString();

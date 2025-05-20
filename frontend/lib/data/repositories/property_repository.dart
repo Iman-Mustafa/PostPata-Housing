@@ -1,6 +1,5 @@
 // lib/data/repositories/property_repository.dart
 import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../models/property_model.dart';
 
 class PropertyRepository {
@@ -9,64 +8,63 @@ class PropertyRepository {
   PropertyRepository(this._supabaseClient);
 
   Future<List<PropertyModel>> getFeaturedProperties() async {
-    final response = await _supabaseClient
+    final data = await _supabaseClient
         .from('properties')
         .select()
         .eq('is_featured', true)
         .order('created_at', ascending: false)
-        .limit(5)
-        .execute();
+        .limit(5);
 
-    if (response.error != null) throw Exception(response.error!.message);
-    return (response.data as List)
+    // ignore: unnecessary_cast
+    return data
+        // ignore: unnecessary_cast
         .map((json) => PropertyModel.fromJson(json as Map<String, dynamic>))
         .toList();
   }
 
   Future<List<PropertyModel>> getAllProperties() async {
-    final response = await _supabaseClient
+    final data = await _supabaseClient
         .from('properties')
         .select()
-        .order('created_at', ascending: false)
-        .execute();
+        .order('created_at', ascending: false);
 
-    if (response.error != null) throw Exception(response.error!.message);
-    return (response.data as List)
-        .map((json) => PropertyModel.fromJson(json as Map<String, dynamic>))
-        .toList();
+    return data.map((json) => PropertyModel.fromJson(json)).toList();
   }
 
   Future<PropertyModel> getPropertyById(String id) async {
-    final response = await _supabaseClient
-        .from('properties')
-        .select()
-        .eq('id', id)
-        .single()
-        .execute();
+    final data =
+        await _supabaseClient
+            .from('properties')
+            .select()
+            .eq('id', id)
+            .maybeSingle(); // Use maybeSingle instead of single
 
-    if (response.error != null) throw Exception(response.error!.message);
-    return PropertyModel.fromJson(response.data as Map<String, dynamic>);
+    if (data == null) throw Exception('Property not found');
+
+    return PropertyModel.fromJson(data);
   }
 
   Future<PropertyModel> addProperty(PropertyModel property) async {
-    final response = await _supabaseClient
-        .from('properties')
-        .insert(property.toJson())
-        .select()
-        .single()
-        .execute();
+    final data =
+        await _supabaseClient
+            .from('properties')
+            .insert(property.toJson())
+            .select()
+            .maybeSingle(); // Use maybeSingle instead of single
 
-    if (response.error != null) throw Exception(response.error!.message);
-    return PropertyModel.fromJson(response.data as Map<String, dynamic>);
+    if (data == null) throw Exception('Failed to create property');
+
+    return PropertyModel.fromJson(data);
   }
 
-  Future<void> deleteProperty(String id) async {
-    final response = await _supabaseClient
-        .from('properties')
-        .delete()
-        .eq('id', id)
-        .execute();
+  Future<void> updateProperty(PropertyModel property) async {
+  await _supabaseClient
+      .from('properties')
+      .update(property.toJson())
+      .eq('id', property.id);
+}
 
-    if (response.error != null) throw Exception(response.error!.message);
+  Future<void> deleteProperty(String id) async {
+    await _supabaseClient.from('properties').delete().eq('id', id);
   }
 }

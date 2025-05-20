@@ -8,11 +8,11 @@ class PropertyCard extends StatelessWidget {
   final bool isFeatured;
 
   const PropertyCard({
-    Key? key,
+    super.key,
     required this.property,
     this.onTap,
     this.isFeatured = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
