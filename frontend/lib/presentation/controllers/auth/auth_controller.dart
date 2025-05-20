@@ -1,22 +1,43 @@
-// lib/presentation/controllers/auth/auth_controller.dart
 import 'package:flutter/material.dart';
 import '../../../data/models/auth/user_model.dart';
 import '../../../data/repositories/auth_repository.dart';
 
 class AuthController with ChangeNotifier {
-  AuthRepository _repository; // Changed from final to mutable
+  // ...existing code...
+void setErrorMessage(String message) {
+  _errorMessage = message; // Make sure you have a private field _errorMessage
+  notifyListeners();
+}
+// ...existing code...
+  // ...existing code...
+
+// ...existing code...
+  // ...existing code...
+// ...existing code...
+  AuthRepository _repository;
   UserModel? _currentUser;
+  // ...existing code...
+UserRole? _selectedRole;
+UserRole? get selectedRole => _selectedRole;
+void setRole(UserRole role) {
+  _selectedRole = role;
+  notifyListeners();
+}
+
+// ...existing code...
   bool _isLoading = false;
-  String? _error;
+  // ...existing code...
+String? _errorMessage;
+
+String? get errorMessage => _errorMessage;
+// ...existing code...
+  bool _isPhoneLogin = false; // Added for toggling login/reset method
 
   AuthController(this._repository);
 
-  // Add this method for ChangeNotifierProxyProvider
   void updateAuthRepo(AuthRepository repository) {
     if (_repository != repository) {
       _repository = repository;
-      // You can add additional logic here if needed when repository changes
-      // For example, re-initialize or reload user data:
       if (_currentUser != null) {
         initialize();
       }
@@ -25,19 +46,20 @@ class AuthController with ChangeNotifier {
 
   UserModel? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
-  String? get error => _error;
+  // Changed from error to errorMessage
+  bool get isPhoneLogin => _isPhoneLogin;
 
   Future<void> initialize() async {
-    if (_isLoading) return; // Prevent duplicate initialization
-    
+    if (_isLoading) return;
+
     _isLoading = true;
     notifyListeners();
-    
+
     try {
       _currentUser = await _repository.getCurrentUser();
-      _error = null;
+      _errorMessage = null;
     } catch (e) {
-      _error = e.toString();
+      _errorMessage = e.toString();
       _currentUser = null;
     } finally {
       _isLoading = false;
@@ -50,10 +72,10 @@ class AuthController with ChangeNotifier {
     required String password,
     required bool isPhone,
   }) async {
-    if (_isLoading) return false; // Prevent duplicate login attempts
-    
+    if (_isLoading) return false;
+
     _isLoading = true;
-    _error = null;
+    _errorMessage = null;
     notifyListeners();
 
     try {
@@ -64,7 +86,7 @@ class AuthController with ChangeNotifier {
       );
       return true;
     } catch (e) {
-      _error = _translateError(e.toString());
+      _errorMessage = _translateError(e.toString());
       return false;
     } finally {
       _isLoading = false;
@@ -79,10 +101,10 @@ class AuthController with ChangeNotifier {
     required UserRole role,
     required bool isPhone,
   }) async {
-    if (_isLoading) return false; // Prevent duplicate registration
-    
+    if (_isLoading) return false;
+
     _isLoading = true;
-    _error = null;
+    _errorMessage = null;
     notifyListeners();
 
     try {
@@ -95,7 +117,7 @@ class AuthController with ChangeNotifier {
       );
       return true;
     } catch (e) {
-      _error = _translateError(e.toString());
+      _errorMessage = _translateError(e.toString());
       return false;
     } finally {
       _isLoading = false;
@@ -108,8 +130,8 @@ class AuthController with ChangeNotifier {
     required String otp,
     required bool isPhone,
   }) async {
-    if (_isLoading) return; // Prevent duplicate verification
-    
+    if (_isLoading) return;
+
     _isLoading = true;
     notifyListeners();
 
@@ -120,9 +142,60 @@ class AuthController with ChangeNotifier {
         isPhone: isPhone,
       );
       _currentUser = await _repository.getCurrentUser();
-      _error = null;
+      _errorMessage = null;
     } catch (e) {
-      _error = _translateError(e.toString());
+      _errorMessage = _translateError(e.toString());
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> requestPasswordReset({
+    required String emailOrPhone,
+    required bool isPhone,
+  }) async {
+    if (_isLoading) return;
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _repository.requestPasswordReset(
+        emailOrPhone: emailOrPhone,
+        isPhone: isPhone,
+      );
+    } catch (e) {
+      _errorMessage = _translateError(e.toString());
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> resetPassword({
+    required String emailOrPhone,
+    required String newPassword,
+    required bool isPhone,
+  }) async {
+    if (_isLoading) return;
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _repository.resetPassword(
+        emailOrPhone: emailOrPhone,
+        newPassword: newPassword,
+        isPhone: isPhone,
+      );
+      _currentUser = await _repository.getCurrentUser();
+    } catch (e) {
+      _errorMessage = _translateError(e.toString());
       rethrow;
     } finally {
       _isLoading = false;
@@ -131,22 +204,27 @@ class AuthController with ChangeNotifier {
   }
 
   Future<void> logout() async {
-    if (_isLoading) return; // Prevent duplicate logout
-    
+    if (_isLoading) return;
+
     _isLoading = true;
     notifyListeners();
 
     try {
       await _repository.logout();
       _currentUser = null;
-      _error = null;
+      _errorMessage = null;
     } catch (e) {
-      _error = e.toString();
+      _errorMessage = e.toString();
       rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  void toggleLoginMethod() {
+    _isPhoneLogin = !_isPhoneLogin;
+    notifyListeners();
   }
 
   String _translateError(String error) {
@@ -158,6 +236,12 @@ class AuthController with ChangeNotifier {
     }
     if (error.contains('email already registered')) {
       return 'Barua pepe tayari imesajiliwa';
+    }
+    if (error.contains('user not found')) {
+      return 'Akaunti haipatikani';
+    }
+    if (error.contains('invalid OTP')) {
+      return 'Msimbo wa OTP si sahihi';
     }
     return error;
   }

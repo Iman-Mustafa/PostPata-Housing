@@ -30,9 +30,10 @@ class UserModel {
       fullName: json['full_name'] as String,
       role: _parseUserRole(json['role'] as String),
       isVerified: json['is_verified'] as bool? ?? false,
-      createdAt: json['created_at'] != null 
-          ? DateTime.parse(json['created_at'] as String)
-          : null,
+      createdAt:
+          json['created_at'] != null
+              ? DateTime.parse(json['created_at'] as String)
+              : null,
       photoUrl: json['photo_url'] as String?,
     );
   }

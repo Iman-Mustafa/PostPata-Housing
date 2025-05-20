@@ -1,10 +1,7 @@
-// lib/core/constants/app_strings.dart
-
 class AppStrings {
   // Authentication
-  
   static const String appName = 'PostPata Housing';
-   static const String welcomeTitle = 'Welcome to PostPata Housing';
+  static const String welcomeTitle = 'Welcome to PostPata Housing';
   static const String welcome = 'Karibu PostPata';
   static const String welcomeMessage = 'Tafuta nyumba bora Tanzania';
   static const String welcomeSubtitle = 'Tafuta nyumba bora Tanzania';
@@ -21,6 +18,8 @@ class AppStrings {
   static const String confirmPassword = 'Hakiki nenosiri';
   static const String selectRole = 'Chagua jukumu';
   static const String forgotPassword = 'Umesahau nenosiri?';
+  static const String forgotPasswordInstruction =
+      'Weka barua pepe au namba ya simu ili kupokea msimbo wa kuweka upya nenosiri';
   static const String alreadyHaveAccount = 'Tayari una akaunti?';
   static const String email = 'Email';
   static const String phoneNumber = 'Phone Number';
@@ -29,11 +28,18 @@ class AppStrings {
   static const String loginWithPhone = 'Login with Phone';
   static const String registerWithEmail = 'register with Email';
   static const String registerWithPhone = 'register with Phone';
-  
+  static const String resetWithEmail = 'Reset with Email';
+  static const String resetWithPhone = 'Reset with Phone';
+  static const String sendOtp = 'Tuma Msimbo';
+  static const String enterEmailOrPhone = 'Weka barua pepe au namba ya simu';
+  static const String backToLogin = 'Rudi kwenye Ingia';
+  static const String resetPassword =
+      'Weka upya Nenosiri'; // Added for OTP screen
+
   // Add these for Tanzania context
   static const String tanzaniaPhoneHint = 'Enter phone (07...)';
   static const String invalidPhone = 'Invalid phone number';
-  
+
   // Validation messages
   static const String emailRequired = 'Email is required';
   static const String phoneRequired = 'Phone number is required';

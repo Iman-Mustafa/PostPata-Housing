@@ -40,13 +40,13 @@ class RegisterController with ChangeNotifier {
   }) {
     if (fullName.isEmpty) return 'Full name is required';
     if (fullName.length < 3) return 'Name must be at least 3 characters';
-    
+
     if (emailOrPhone.isEmpty) {
-      return _isPhoneRegistration 
-          ? 'Phone number is required' 
+      return _isPhoneRegistration
+          ? 'Phone number is required'
           : 'Email is required';
     }
-    
+
     if (_isPhoneRegistration) {
       if (!RegExp(r'^\+?[0-9]{8,15}$').hasMatch(emailOrPhone)) {
         return 'Enter a valid phone number (e.g. +1234567890)';
@@ -56,10 +56,10 @@ class RegisterController with ChangeNotifier {
         return 'Enter a valid email address';
       }
     }
-    
+
     if (password.isEmpty) return 'Password is required';
     if (password.length < 6) return 'Password must be at least 6 characters';
-    
+
     return null;
   }
 
@@ -75,7 +75,7 @@ class RegisterController with ChangeNotifier {
       emailOrPhone: emailOrPhone,
       password: password,
     );
-    
+
     if (_errorMessage != null) {
       notifyListeners();
       return false;
@@ -88,17 +88,18 @@ class RegisterController with ChangeNotifier {
     try {
       final user = await _repository.register(
         fullName: fullName.trim(),
-        emailOrPhone: _isPhoneRegistration 
-            ? _formatPhoneNumber(emailOrPhone.trim())
-            : emailOrPhone.trim().toLowerCase(),
+        emailOrPhone:
+            _isPhoneRegistration
+                ? _formatPhoneNumber(emailOrPhone.trim())
+                : emailOrPhone.trim().toLowerCase(),
         password: password.trim(),
         role: _selectedRole,
         isPhone: _isPhoneRegistration,
       );
-      
+
       // Optional: You might want to automatically log in the user after registration
       // await _repository.login(emailOrPhone: emailOrPhone, password: password);
-      
+
       return true;
     } catch (e) {
       _errorMessage = _translateError(e.toString());
@@ -120,7 +121,7 @@ class RegisterController with ChangeNotifier {
 
   String _translateError(String error) {
     error = error.toLowerCase();
-    
+
     if (error.contains('already registered')) {
       return _isPhoneRegistration
           ? 'Phone number already in use'
