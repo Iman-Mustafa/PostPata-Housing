@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../features/home/views/home_screen.dart';
+import 'package:frontend/presentation/views/home/home_screen.dart';
 
 class LandlordHome extends StatelessWidget {
   const LandlordHome({super.key});

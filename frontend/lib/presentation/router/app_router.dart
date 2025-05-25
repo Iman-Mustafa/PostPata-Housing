@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/presentation/views/home/home_screen.dart';
 
 import '../../presentation/views/auth/forgot_password_screen.dart';
 import '../../presentation/views/auth/login_screen.dart';
 import '../../presentation/views/auth/otp_screen.dart';
 import '../../presentation/views/auth/register_screen.dart';
 import '../../presentation/views/auth/welcome_screen.dart';
-import '../../features/home/views/home_screen.dart';
 import 'route_names.dart';
 
 class AppRouter {

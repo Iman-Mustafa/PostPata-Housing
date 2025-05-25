@@ -1,25 +1,45 @@
-// lib/presentation/controllers/auth/register_controller.dart
 import 'package:flutter/material.dart';
 import '../../../data/models/auth/user_model.dart';
 import '../../../data/repositories/auth_repository.dart';
+import '../../../data/services/connectivity_service.dart';
+
 
 class RegisterController with ChangeNotifier {
+  // Dependencies
   final AuthRepository _repository;
+  final ConnectivityService _connectivityService;
+
+  // State
   bool _isLoading = false;
-  bool _isPhoneRegistration = false; // Default to email registration
+  bool _isPhoneRegistration = false;
   UserRole _selectedRole = UserRole.tenant;
   String? _errorMessage;
+  bool _hasConnection = true;
 
-  RegisterController(this._repository);
+  // Constructor
+  RegisterController(this._repository, this._connectivityService) {
+    _initConnectivityListener();
+  }
 
+  // Getters
   bool get isLoading => _isLoading;
   bool get isPhoneRegistration => _isPhoneRegistration;
   UserRole get selectedRole => _selectedRole;
   String? get errorMessage => _errorMessage;
+  bool get hasConnection => _hasConnection;
 
+  // Connectivity handling
+  void _initConnectivityListener() {
+    _connectivityService.onConnectivityChanged.listen((isConnected) {
+      _hasConnection = isConnected;
+      notifyListeners();
+    });
+  }
+
+  // UI Methods
   void toggleRegistrationMethod() {
     _isPhoneRegistration = !_isPhoneRegistration;
-    _errorMessage = null; // Clear error when switching methods
+    _errorMessage = null;
     notifyListeners();
   }
 
@@ -33,11 +53,13 @@ class RegisterController with ChangeNotifier {
     notifyListeners();
   }
 
+  // Validation Methods
   String? _validateInputs({
     required String fullName,
     required String emailOrPhone,
     required String password,
   }) {
+    // ...existing validation code...
     if (fullName.isEmpty) return 'Full name is required';
     if (fullName.length < 3) return 'Name must be at least 3 characters';
 
@@ -69,7 +91,16 @@ class RegisterController with ChangeNotifier {
     required String emailOrPhone,
     required String password,
   }) async {
-    // Validate inputs first
+    if (_isLoading) return false;
+
+    // Check connectivity first
+    if (!await _connectivityService.isConnected()) {
+      _errorMessage = 'No internet connection';
+      notifyListeners();
+      return false;
+    }
+
+    // Validate inputs
     _errorMessage = _validateInputs(
       fullName: fullName,
       emailOrPhone: emailOrPhone,
@@ -92,13 +123,24 @@ class RegisterController with ChangeNotifier {
             _isPhoneRegistration
                 ? _formatPhoneNumber(emailOrPhone.trim())
                 : emailOrPhone.trim().toLowerCase(),
-        password: password.trim(),
+        password: password,
         role: _selectedRole,
         isPhone: _isPhoneRegistration,
       );
 
-      // Optional: You might want to automatically log in the user after registration
-      // await _repository.login(emailOrPhone: emailOrPhone, password: password);
+      if (!context.mounted) return false;
+
+      // Navigate to OTP verification if needed
+      if (!user.isVerified) {
+        Navigator.pushNamed(
+          context,
+          'otp',
+          arguments: {
+            'isPhone': _isPhoneRegistration,
+            'emailOrPhone': emailOrPhone.trim(),
+          },
+        );
+      }
 
       return true;
     } catch (e) {
@@ -110,11 +152,10 @@ class RegisterController with ChangeNotifier {
     }
   }
 
+  // Helper Methods
   String _formatPhoneNumber(String phone) {
-    // Ensure phone number starts with +
     if (!phone.startsWith('+')) {
-      // Add default country code if missing - adjust as needed
-      return '+1$phone'; // Default to US country code
+      return '+255${phone.replaceAll(RegExp(r'[^\d]'), '')}'; // Tanzania code
     }
     return phone;
   }
@@ -122,6 +163,7 @@ class RegisterController with ChangeNotifier {
   String _translateError(String error) {
     error = error.toLowerCase();
 
+    // ...existing error translation code...
     if (error.contains('already registered')) {
       return _isPhoneRegistration
           ? 'Phone number already in use'
@@ -140,5 +182,11 @@ class RegisterController with ChangeNotifier {
       return 'Network error. Please check your connection';
     }
     return 'Registration failed. Please try again.';
+  }
+
+  @override
+  void dispose() {
+    // Clean up resources
+    super.dispose();
   }
 }

@@ -1,4 +1,6 @@
 // lib/data/models/auth/user_model.dart
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 enum UserRole { tenant, landlord, admin }
 
 class UserModel {
@@ -21,7 +23,20 @@ class UserModel {
     this.createdAt,
     this.photoUrl,
   });
-
+  factory UserModel.fromSupabaseUser(User user, [Map<String, dynamic>? profile]) {
+    return UserModel(
+      id: user.id,
+      email: user.email,
+      phone: user.phone,
+      fullName: profile?['full_name'] ?? user.userMetadata?['full_name'] ?? '',
+      role: _parseUserRole(profile?['role'] ?? user.userMetadata?['role'] ?? 'tenant'),
+      isVerified: profile?['is_verified'] ?? false,
+      createdAt: profile?['created_at'] != null 
+          ? DateTime.parse(profile!['created_at']) 
+          : null,
+      photoUrl: profile?['photo_url'],
+    );
+  }
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['id'] as String,
